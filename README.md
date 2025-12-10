@@ -1,20 +1,22 @@
 # DarkhorseOne x402 Middleware
 
-TypeScript middleware implementing the x402 payment standard for API servers. Provides NestJS guards/interceptors and Next.js route wrappers that enforce per-call or usage-based micro-payments, returning HTTP 402 when payment is missing, invalid, or insufficient.
+https://github.com/DarkhorseOne/x402-design
+
+TypeScript middleware implementing the x402 payment standard for API servers. Provides NestJS guards/interceptors and Next.js route wrappers that enforce per-call or usage-based micro-payments and return HTTP 402 when payment is missing, invalid, or insufficient. All requirements live in `docs/x402-middleware-prd.md`; roadmap phases are mirrored in `docs/Phase0`, `docs/Phase1`, and `docs/Phase2`.
 
 ## Packages (planned)
-- `packages/x402-core`: Framework-agnostic x402 logic, types, and facilitator wiring.
+- `packages/x402-core`: Framework-agnostic x402 logic, types, facilitator wiring.
 - `packages/x402-nest`: NestJS guard + interceptor + decorator (`@X402Charge`).
 - `packages/x402-next`: Next.js App Router/Pages Router `x402Route` wrapper.
 - `packages/x402-storage-*`: Optional adapters (Postgres/Prisma, Redis cache, MQ sinks) for Phase 1/2 features.
 - `examples/`: Runnable samples for NestJS and Next.js.
 
-## Status & Roadmap
-- **Phase 0 (current)**: Stateless, strict verification via facilitator; no DB/Redis/MQ required; fallback mode `deny` by default.
-- **Phase 1**: Optional storage/caching, observability, usage logs.
-- **Phase 2**: Credit-based fallback, async reconciliation via MQ for enterprise tenants.
+## Roadmap (see PRD §4)
+- **Phase 0 (current)**: Stateless, strict facilitator verification; no DB/Redis/MQ; fallback `deny`.
+- **Phase 1**: Optional storage + caching, observability, usage/payment logs, Prisma adapter.
+- **Phase 2**: Credit-based fallback, async reconciliation via MQ, enterprise gating.
 
-## Quick Start (planned APIs)
+## Planned API Examples
 NestJS:
 ```ts
 @Controller('report')
@@ -35,7 +37,7 @@ export const POST = x402Route(
 );
 ```
 
-## Configuration (core)
+## Core Configuration (PRD §11)
 ```ts
 interface X402Config {
   facilitatorUrl: string;
@@ -58,11 +60,10 @@ interface X402Config {
 - Local samples: `npm run dev:nest`, `npm run dev:next` (see `examples/`).
 - Build packages: `npm run build` before publish.
 
-## Security & Reliability
+## Security & Reliability (PRD §14)
 - Enforce HTTPS to facilitator; never commit secrets—use `.env.example` with `FACILITATOR_URL`, `SELLER_WALLET`, etc.
-- Implement replay protection via cache/DB (paymentId dedupe).
-- Use schema validation (e.g., Zod) for request payloads and facilitator responses.
-- Default fallback is `deny`; other modes require storage/MQ and should be gated per tenant.
+- Add replay protection via cache/DB (paymentId dedupe) and schema validation (e.g., Zod).
+- Default fallback is `deny`; other modes need storage/MQ and tenant gating.
 
 ## License
 MIT (© DarkhorseOne Limited).
